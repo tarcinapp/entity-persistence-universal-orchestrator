@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.tarcinapp</groupId>
+    <artifactId>entity-persistence-universal-orchestrator</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>entity-persistence-universal-orchestrator</name>
+    <description>
+        Universal orchestration gateway for entity-persistence-service.
+        Built with Apache Camel on Quarkus — one dedicated RouteBuilder per OAS endpoint,
+        each following a preprocessor → backend-proxy → postprocessor pipeline.
+    </description>
+
+    <properties>
+        <maven.compiler.release>17</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- Platform versions — bump here to upgrade the whole stack -->
+        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+        <quarkus.platform.version>3.15.3</quarkus.platform.version>
+
+        <!-- Surefire / Failsafe -->
+        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.2.5</maven-failsafe-plugin.version>
+        <skipITs>true</skipITs>
+    </properties>
+
+    <!-- ================================================================== -->
+    <!-- BOM imports                                                         -->
+    <!-- ================================================================== -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- Quarkus BOM -->
+            <dependency>
+                <groupId>${quarkus.platform.group-id}</groupId>
+                <artifactId>quarkus-bom</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Camel Quarkus BOM (must come after quarkus-bom) -->
+            <dependency>
+                <groupId>${quarkus.platform.group-id}</groupId>
+                <artifactId>quarkus-camel-bom</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- ================================================================== -->
+    <!-- Dependencies                                                        -->
+    <!-- ================================================================== -->
+    <dependencies>
+
+        <!-- ── Camel Quarkus ─────────────────────────────────────────── -->
+
+        <!--
+            camel-quarkus-platform-http
+            Exposes Camel routes as HTTP endpoints via the Quarkus Vert.x HTTP server.
+            Used as the "from" component in every RouteBuilder.
+        -->
+        <dependency>
+            <groupId>org.apache.camel.quarkus</groupId>
+            <artifactId>camel-quarkus-platform-http</artifactId>
+        </dependency>
+
+        <!--
+            camel-quarkus-http
+            Apache HttpClient-based HTTP producer used in toD() calls to proxy
+            requests to the backend entity-persistence-service.
+        -->
+        <dependency>
+            <groupId>org.apache.camel.quarkus</groupId>
+            <artifactId>camel-quarkus-http</artifactId>
+        </dependency>
+
+        <!--
+            camel-quarkus-log
+            Enables the log() DSL step used for short-circuit notifications.
+        -->
+        <dependency>
+            <groupId>org.apache.camel.quarkus</groupId>
+            <artifactId>camel-quarkus-log</artifactId>
+        </dependency>
+
+        <!--
+            camel-quarkus-opentelemetry
+            Instruments every Camel Exchange with an OpenTelemetry span so that
+            distributed traces flow through the routing layer end-to-end.
+        -->
+        <dependency>
+            <groupId>org.apache.camel.quarkus</groupId>
+            <artifactId>camel-quarkus-opentelemetry</artifactId>
+        </dependency>
+
+        <!-- ── Quarkus Core ──────────────────────────────────────────── -->
+
+        <!-- CDI container -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-arc</artifactId>
+        </dependency>
+
+        <!--
+            quarkus-rest-client-reactive
+            MicroProfile REST Client (built on Quarkus Reactive REST Client).
+            Used for the EntityPersistenceClient gateway interface.
+        -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest-client-reactive</artifactId>
+        </dependency>
+
+        <!--
+            quarkus-rest-client-reactive-jackson
+            Jackson serialisation/deserialisation support for the REST client.
+        -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest-client-reactive-jackson</artifactId>
+        </dependency>
+
+        <!--
+            quarkus-opentelemetry
+            Provides the OpenTelemetry SDK, auto-instruments the Quarkus HTTP
+            layer, and propagates W3C Trace Context (traceparent/tracestate) and
+            B3 headers across all outbound calls — including the REST client.
+        -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-opentelemetry</artifactId>
+        </dependency>
+
+        <!-- ── Testing ───────────────────────────────────────────────── -->
+
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-junit5</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <!-- ================================================================== -->
+    <!-- Build                                                               -->
+    <!-- ================================================================== -->
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>${quarkus.platform.group-id}</groupId>
+                <artifactId>quarkus-maven-plugin</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <extensions>true</extensions>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>generate-code</goal>
+                            <goal>generate-code-tests</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <release>${maven.compiler.release}</release>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        <maven.home>${maven.home}</maven.home>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${maven-failsafe-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <systemPropertyVariables>
+                        <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        <maven.home>${maven.home}</maven.home>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <!-- ================================================================== -->
+    <!-- Profiles                                                            -->
+    <!-- ================================================================== -->
+    <profiles>
+        <profile>
+            <id>native</id>
+            <activation>
+                <property>
+                    <name>native</name>
+                </property>
+            </activation>
+            <properties>
+                <skipITs>false</skipITs>
+                <quarkus.native.enabled>true</quarkus.native.enabled>
+            </properties>
+        </profile>
+    </profiles>
+
+</project>

@@ -1,0 +1,44 @@
+# Maven
+target/
+!target/.gitkeep
+
+# Eclipse / IntelliJ / VS Code
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+
+# Build and dependency directories
+node_modules/
+
+# Logs and operational files
+*.log
+*.tmp
+*.temp
+
+# Compiled Java classes
+*.class
+
+# Generated files
+*.jar
+*.war
+*.ear
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Maven wrapper
+.mvn/
+
+# Quarkus dev mode
+/quarkus-app/
+
+# MacOS
+.AppleDouble
+.LSOverride
+
+# Files created by the IDE or build tools
+*.swp
+*~
