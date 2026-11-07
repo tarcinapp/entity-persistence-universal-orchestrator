@@ -2,6 +2,7 @@ package io.tarcinapp.orchestrator.routes.listreactions;
 
 import io.tarcinapp.orchestrator.processors.listreactions.FindListReactionByIdPreProcessor;
 import io.tarcinapp.orchestrator.processors.listreactions.FindListReactionByIdPostProcessor;
+import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.apache.camel.builder.RouteBuilder;
@@ -18,6 +19,7 @@ import org.apache.camel.builder.RouteBuilder;
  *   exchange.getMessage().setHeader("CamelHttpResponseCode", 200);
  *   exchange.getMessage().setBody("{ ... }");
  */
+@Priority(20)
 @ApplicationScoped
 public class FindListReactionByIdRoute extends RouteBuilder {
 
@@ -43,7 +45,7 @@ public class FindListReactionByIdRoute extends RouteBuilder {
                     // automatically because bridgeEndpoint=true reads CamelHttpQuery.
                     // throwExceptionOnFailure=false passes 4xx/5xx responses
                     // transparently instead of raising a CamelHttpOperationFailedException.
-                    .toD("{{backend.base-url}}/list-reactions/${header.id}?bridgeEndpoint=true&throwExceptionOnFailure=false")
+                    .toD("{{backend.base-url}}${header.CamelHttpPath}?bridgeEndpoint=true&throwExceptionOnFailure=false")
                     .process(postProcessor)
             .end();
     }

@@ -43,7 +43,7 @@ public class FindParentsByEntityReactionIdRoute extends RouteBuilder {
                     // automatically because bridgeEndpoint=true reads CamelHttpQuery.
                     // throwExceptionOnFailure=false passes 4xx/5xx responses
                     // transparently instead of raising a CamelHttpOperationFailedException.
-                    .toD("{{backend.base-url}}/entity-reactions/${header.id}/parents?bridgeEndpoint=true&throwExceptionOnFailure=false")
+                    .toD("{{backend.base-url}}${header.CamelHttpPath}?bridgeEndpoint=true&throwExceptionOnFailure=false")
                     .process(postProcessor)
             .end();
     }

@@ -139,6 +139,18 @@
             <artifactId>quarkus-opentelemetry</artifactId>
         </dependency>
 
+        <!--
+            quarkus-micrometer-registry-prometheus
+            Exposes Micrometer metrics at /q/metrics.
+            The LGTM dev service it pulls in transitively is disabled in dev
+            mode via %dev.quarkus.observability.enabled=false so Docker is
+            not required locally.
+        -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-micrometer-registry-prometheus</artifactId>
+        </dependency>
+
         <!-- ── Testing ───────────────────────────────────────────────── -->
 
         <dependency>
