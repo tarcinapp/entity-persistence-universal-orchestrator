@@ -2,7 +2,6 @@ package io.tarcinapp.orchestrator.routes.entityreactions;
 
 import io.tarcinapp.orchestrator.processors.entityreactions.CountEntityReactionsPreProcessor;
 import io.tarcinapp.orchestrator.processors.entityreactions.CountEntityReactionsPostProcessor;
-import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.apache.camel.builder.RouteBuilder;
@@ -19,7 +18,6 @@ import org.apache.camel.builder.RouteBuilder;
  *   exchange.getMessage().setHeader("CamelHttpResponseCode", 200);
  *   exchange.getMessage().setBody("{ ... }");
  */
-@Priority(10)
 @ApplicationScoped
 public class CountEntityReactionsRoute extends RouteBuilder {
 
@@ -33,6 +31,7 @@ public class CountEntityReactionsRoute extends RouteBuilder {
     public void configure() {
         from("platform-http:/entity-reactions/count?httpMethodRestrict=GET")
             .routeId("countEntityReactions")
+            .startupOrder(4)
             .process(preProcessor)
             .choice()
                 .when(exchangeProperty("CamelRouteStop").isEqualTo(Boolean.TRUE))

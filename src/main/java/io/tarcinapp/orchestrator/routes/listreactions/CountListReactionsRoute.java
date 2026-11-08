@@ -2,7 +2,6 @@ package io.tarcinapp.orchestrator.routes.listreactions;
 
 import io.tarcinapp.orchestrator.processors.listreactions.CountListReactionsPreProcessor;
 import io.tarcinapp.orchestrator.processors.listreactions.CountListReactionsPostProcessor;
-import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.apache.camel.builder.RouteBuilder;
@@ -19,7 +18,6 @@ import org.apache.camel.builder.RouteBuilder;
  *   exchange.getMessage().setHeader("CamelHttpResponseCode", 200);
  *   exchange.getMessage().setBody("{ ... }");
  */
-@Priority(10)
 @ApplicationScoped
 public class CountListReactionsRoute extends RouteBuilder {
 
@@ -33,6 +31,7 @@ public class CountListReactionsRoute extends RouteBuilder {
     public void configure() {
         from("platform-http:/list-reactions/count?httpMethodRestrict=GET")
             .routeId("countListReactions")
+            .startupOrder(5)
             .process(preProcessor)
             .choice()
                 .when(exchangeProperty("CamelRouteStop").isEqualTo(Boolean.TRUE))

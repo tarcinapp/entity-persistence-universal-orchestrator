@@ -11,24 +11,10 @@ import org.jboss.logging.Logger;
  * Configures the Camel {@code platform-http} component with a custom
  * {@link DefaultHeaderFilterStrategy} before routes start accepting requests.
  *
- * <h3>Problem</h3>
- * Camel's {@code platform-http} consumer stores incoming URL query parameters
- * (e.g. {@code filter[limit]}, {@code filter[skip]}) as Exchange message headers.
- * When writing the HTTP response, Camel attempts to copy all Exchange message
- * headers — including those query-parameter headers — into the response.
- * Vert.x then throws:
- * <pre>
- *   IllegalArgumentException: a header name cannot contain some prohibited
- *   characters, such as : filter[limit]
- * </pre>
- * because {@code [} and {@code ]} are not valid HTTP header name characters
- * (RFC 7230 §3.2).
- *
- * <h3>Fix</h3>
- * Configure the component's {@code HeaderFilterStrategy} to reject (outbound)
- * any header whose name contains {@code [} or {@code ]}.
- * The query parameters remain available inside the Exchange for routing logic;
- * they are simply not written into the HTTP response.
+ * <p>Strips headers with {@code [} or {@code ]} characters from HTTP responses.
+ * Query parameter names like {@code filter[limit]} are invalid HTTP header names
+ * (RFC 7230 §3.2) and would cause Vert.x to throw an
+ * {@link IllegalArgumentException}.</p>
  */
 @ApplicationScoped
 public class CamelPlatformHttpConfig {

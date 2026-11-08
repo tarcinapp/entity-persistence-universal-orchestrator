@@ -2,7 +2,6 @@ package io.tarcinapp.orchestrator.routes.entities;
 
 import io.tarcinapp.orchestrator.processors.entities.FindEntityByIdPreProcessor;
 import io.tarcinapp.orchestrator.processors.entities.FindEntityByIdPostProcessor;
-import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.apache.camel.builder.RouteBuilder;
@@ -19,7 +18,6 @@ import org.apache.camel.builder.RouteBuilder;
  *   exchange.getMessage().setHeader("CamelHttpResponseCode", 200);
  *   exchange.getMessage().setBody("{ ... }");
  */
-@Priority(20)
 @ApplicationScoped
 public class FindEntityByIdRoute extends RouteBuilder {
 
