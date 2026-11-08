@@ -6,6 +6,7 @@ import jakarta.inject.Inject;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.jboss.logging.Logger;
 
 /**
  * Pre-processor for GET /openapi.json (operationId: getOpenApiJson).
@@ -24,12 +25,15 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 @ApplicationScoped
 public class GetOpenApiJsonPreProcessor implements Processor {
 
+    private static final Logger LOG = Logger.getLogger(GetOpenApiJsonPreProcessor.class);
+
     @Inject
     @RestClient
     EntityPersistenceClient gatewayClient;
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        // TODO: implement pre-processing logic for getOpenApiJson
+        LOG.debugf("openapi.json requested; requestId=%s",
+                exchange.getMessage().getHeader("X-Request-Id", String.class));
     }
 }
